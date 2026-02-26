@@ -1,0 +1,18 @@
+# Binaries for programs and plugins
+main
+main.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Dependency directories
+vendor/
+
+# Docker/Local Database data (prevents uploading GBs of data)
+db_data/
+
+# OS generated files
+.DS_Store
+Thumbs.db
