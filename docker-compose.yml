@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # 1. The Application Logic
+  app:
+    build: .
+    container_name: ingestion-api
+    ports:
+      - "8080:8080" # API endpoint
+    environment:
+      - DB_HOST=db
+      - DB_USER=niantic_user
+      - DB_PASSWORD=niantic_pass
+      - DB_NAME=spatial_db
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      - db
+      - redis
+
+  # 2. Spatial Database (PostgreSQL + PostGIS)
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: spatial-db
+    restart: always
+    environment:
+      POSTGRES_USER: niantic_user
+      POSTGRES_PASSWORD: niantic_pass
+      POSTGRES_DB: spatial_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # 3. Message Broker (Redis)
+  redis:
+    image: redis:alpine
+    container_name: message-broker
+    ports:
+      - "6379:6379"
+
+  # 4. Metrics Collector (Prometheus)
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  # 5. Dashboard (Grafana)
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+volumes:
+  db_data:
